@@ -1,0 +1,6 @@
+.github
+.gitignore
+
+# Other
+build/*
+docs/*
