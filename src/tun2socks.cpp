@@ -19,7 +19,13 @@ namespace {
         GoString proxyString{proxy.data(), static_cast<ptrdiff_t>(proxy.size())};
         GoString restAPIString{restAPI.data(), static_cast<ptrdiff_t>(restAPI.size())};
 
-        ::startFromArgs(deviceString, networkInterfaceString, logLevelString, proxyString, restAPIString);
+        {
+            py::gil_scoped_release release;
+
+            ::startFromArgs(deviceString, networkInterfaceString, logLevelString, proxyString, restAPIString);
+
+            py::gil_scoped_acquire acquire;
+        }
     }
 
     PYBIND11_MODULE(tun2socks, m)
