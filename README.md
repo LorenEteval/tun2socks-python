@@ -1,6 +1,6 @@
 # tun2socks-python
 
-[![Build tun2socks binding](https://github.com/LorenEteval/tun2socks-python/actions/workflows/wheels.yml/badge.svg?branch=main)](https://github.com/LorenEteval/tun2socks-python/actions/workflows/wheels.yml)
+[![Deploy PyPI](https://github.com/LorenEteval/tun2socks-python/actions/workflows/deploy-pypi.yml/badge.svg?branch=main)](https://github.com/LorenEteval/tun2socks-python/actions/workflows/deploy-pypi.yml)
 
 Python bindings for [tun2socks](https://github.com/xjasonlyu/tun2socks).
 
