@@ -8,7 +8,7 @@
 [![Docker Pulls][6]](https://hub.docker.com/r/xjasonlyu/tun2socks)
 [![Releases][7]](https://github.com/xjasonlyu/tun2socks/releases)
 
-[1]: https://img.shields.io/github/actions/workflow/status/xjasonlyu/tun2socks/release.yml?branch=main&logo=github
+[1]: https://img.shields.io/github/actions/workflow/status/xjasonlyu/tun2socks/release.yml?logo=github
 [2]: https://img.shields.io/github/go-mod/go-version/xjasonlyu/tun2socks?logo=go
 [3]: https://goreportcard.com/badge/github.com/xjasonlyu/tun2socks
 [4]: https://api.codeclimate.com/v1/badges/b5b30239174fc6603aca/maintainability
@@ -47,7 +47,6 @@
 
 ## 特别感谢
 
-- [Dreamacro/clash](https://github.com/Dreamacro/clash) - A rule-based tunnel in Go
 - [google/gvisor](https://github.com/google/gvisor) - Application Kernel for Containers
 - [wireguard-go](https://git.zx2c4.com/wireguard-go) - Go Implementation of WireGuard
 
@@ -59,4 +58,10 @@
 
 ## 星星历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=xjasonlyu/tun2socks&type=Date)](https://star-history.com/#xjasonlyu/tun2socks&Date)
+<a href="https://star-history.com/#xjasonlyu/tun2socks&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=xjasonlyu/tun2socks&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=xjasonlyu/tun2socks&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=xjasonlyu/tun2socks&type=Date" />
+  </picture>
+</a>

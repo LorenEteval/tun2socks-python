@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gorilla/schema"
+
 	"github.com/xjasonlyu/tun2socks/v2/core/device"
 	"github.com/xjasonlyu/tun2socks/v2/core/device/fdbased"
 	"github.com/xjasonlyu/tun2socks/v2/core/device/tun"
@@ -51,17 +53,20 @@ func parseDevice(s string, mtu uint32) (device.Device, error) {
 		return nil, err
 	}
 
-	name := u.Host
 	driver := strings.ToLower(u.Scheme)
 
 	switch driver {
 	case fdbased.Driver:
-		return fdbased.Open(name, mtu)
+		return parseFD(u, mtu)
 	case tun.Driver:
-		return tun.Open(name, mtu)
+		return parseTUN(u, mtu)
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", driver)
 	}
+}
+
+func parseFD(u *url.URL, mtu uint32) (device.Device, error) {
+	return fdbased.Open(u.Host, mtu, 0)
 }
 
 func parseProxy(s string) (proxy.Proxy, error) {
@@ -82,48 +87,56 @@ func parseProxy(s string) (proxy.Proxy, error) {
 	case proto.Reject.String():
 		return proxy.NewReject(), nil
 	case proto.HTTP.String():
-		return proxy.NewHTTP(parseHTTP(u))
+		return parseHTTP(u)
 	case proto.Socks4.String():
-		return proxy.NewSocks4(parseSocks4(u))
+		return parseSocks4(u)
 	case proto.Socks5.String():
-		return proxy.NewSocks5(parseSocks5(u))
+		return parseSocks5(u)
 	case proto.Shadowsocks.String():
-		return proxy.NewShadowsocks(parseShadowsocks(u))
+		return parseShadowsocks(u)
+	case proto.Relay.String():
+		return parseRelay(u)
 	default:
 		return nil, fmt.Errorf("unsupported protocol: %s", protocol)
 	}
 }
 
-func parseHTTP(u *url.URL) (address, username, password string) {
-	address, username = u.Host, u.User.Username()
-	password, _ = u.User.Password()
-	return
+func parseHTTP(u *url.URL) (proxy.Proxy, error) {
+	address, username := u.Host, u.User.Username()
+	password, _ := u.User.Password()
+	return proxy.NewHTTP(address, username, password)
 }
 
-func parseSocks4(u *url.URL) (address, username string) {
-	address, username = u.Host, u.User.Username()
-	return
+func parseSocks4(u *url.URL) (proxy.Proxy, error) {
+	address, userID := u.Host, u.User.Username()
+	return proxy.NewSocks4(address, userID)
 }
 
-func parseSocks5(u *url.URL) (address, username, password string) {
-	address, username = u.Host, u.User.Username()
-	password, _ = u.User.Password()
+func parseSocks5(u *url.URL) (proxy.Proxy, error) {
+	address, username := u.Host, u.User.Username()
+	password, _ := u.User.Password()
 
 	// Socks5 over UDS
 	if address == "" {
 		address = u.Path
 	}
-	return
+	return proxy.NewSocks5(address, username, password)
 }
 
-func parseShadowsocks(u *url.URL) (address, method, password, obfsMode, obfsHost string) {
-	address = u.Host
+func parseShadowsocks(u *url.URL) (proxy.Proxy, error) {
+	var (
+		address            = u.Host
+		method, password   string
+		obfsMode, obfsHost string
+	)
 
-	if pass, set := u.User.Password(); set {
+	if ss := u.User.String(); ss == "" {
+		method = "dummy" // none cipher mode
+	} else if pass, set := u.User.Password(); set {
 		method = u.User.Username()
 		password = pass
 	} else {
-		data, _ := base64.RawURLEncoding.DecodeString(u.User.String())
+		data, _ := base64.RawURLEncoding.DecodeString(ss)
 		userInfo := strings.SplitN(string(data), ":", 2)
 		if len(userInfo) == 2 {
 			method = userInfo[0]
@@ -148,5 +161,37 @@ func parseShadowsocks(u *url.URL) (address, method, password, obfsMode, obfsHost
 		}
 	}
 
+	return proxy.NewShadowsocks(address, method, password, obfsMode, obfsHost)
+}
+
+func parseRelay(u *url.URL) (proxy.Proxy, error) {
+	address, username := u.Host, u.User.Username()
+	password, _ := u.User.Password()
+
+	opts := struct {
+		NoDelay bool
+	}{}
+	if err := schema.NewDecoder().Decode(&opts, u.Query()); err != nil {
+		return nil, err
+	}
+
+	return proxy.NewRelay(address, username, password, opts.NoDelay)
+}
+
+func parseMulticastGroups(s string) (multicastGroups []net.IP, _ error) {
+	ipStrings := strings.Split(s, ",")
+	for _, ipString := range ipStrings {
+		if strings.TrimSpace(ipString) == "" {
+			continue
+		}
+		ip := net.ParseIP(ipString)
+		if ip == nil {
+			return nil, fmt.Errorf("invalid IP format: %s", ipString)
+		}
+		if !ip.IsMulticast() {
+			return nil, fmt.Errorf("invalid multicast IP address: %s", ipString)
+		}
+		multicastGroups = append(multicastGroups, ip)
+	}
 	return
 }
