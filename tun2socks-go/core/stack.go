@@ -1,9 +1,8 @@
 package core
 
 import (
-	"net"
+	"net/netip"
 
-	"gvisor.dev/gvisor/pkg/tcpip"
 	"gvisor.dev/gvisor/pkg/tcpip/network/ipv4"
 	"gvisor.dev/gvisor/pkg/tcpip/network/ipv6"
 	"gvisor.dev/gvisor/pkg/tcpip/stack"
@@ -27,7 +26,7 @@ type Config struct {
 
 	// MulticastGroups is used by internal stack to add
 	// nic to given groups.
-	MulticastGroups []net.IP
+	MulticastGroups []netip.Addr
 
 	// Options are supplement options to apply settings
 	// for the internal stack.
@@ -55,7 +54,7 @@ func CreateStack(cfg *Config) (*stack.Stack, error) {
 	})
 
 	// Generate unique NIC id.
-	nicID := tcpip.NICID(s.UniqueID())
+	nicID := s.NextNICID()
 
 	opts = append(opts,
 		// Important: We must initiate transport protocol handlers

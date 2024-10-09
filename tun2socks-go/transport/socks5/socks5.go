@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"strconv"
+
+	"github.com/xjasonlyu/tun2socks/v2/transport/internal/bufferpool"
 )
 
 // AuthMethod is the authentication method as defined in RFC 1928 section 3.
@@ -205,10 +208,9 @@ func ClientHandshake(rw io.ReadWriter, addr Addr, command Command, user *User) (
 			return nil, errors.New("auth username/password too long")
 		}
 
-		authMsgLen := 1 + 1 + uLen + 1 + pLen
-
 		// password protocol version
-		authMsg := bytes.NewBuffer(make([]byte, 0, authMsgLen))
+		authMsg := bufferpool.Get()
+		defer bufferpool.Put(authMsg)
 		authMsg.WriteByte(0x01 /* VER */)
 		authMsg.WriteByte(byte(uLen) /* ULEN */)
 		authMsg.WriteString(user.Username /* UNAME */)
@@ -232,7 +234,15 @@ func ClientHandshake(rw io.ReadWriter, addr Addr, command Command, user *User) (
 	}
 
 	// VER, CMD, RSV, ADDR
-	if _, err := rw.Write(bytes.Join([][]byte{{Version, byte(command), 0x00 /* RSV */}, addr}, nil)); err != nil {
+	req := bufferpool.Get()
+	defer bufferpool.Put(req)
+	req.Grow(3 + MaxAddrLen)
+	req.WriteByte(Version)
+	req.WriteByte(byte(command))
+	req.WriteByte(0x00 /* RSV */)
+	req.Write(addr)
+
+	if _, err := rw.Write(req.Bytes()); err != nil {
 		return nil, err
 	}
 
@@ -308,7 +318,7 @@ func SplitAddr(b []byte) Addr {
 
 // SerializeAddr serializes destination address and port to Addr.
 // If a domain name is provided, AtypDomainName would be used first.
-func SerializeAddr(domainName string, dstIP net.IP, dstPort uint16) Addr {
+func SerializeAddr(domainName string, dstIP netip.Addr, dstPort uint16) Addr {
 	var (
 		buf  [][]byte
 		port [2]byte
@@ -318,10 +328,10 @@ func SerializeAddr(domainName string, dstIP net.IP, dstPort uint16) Addr {
 	if domainName != "" /* Domain Name */ {
 		length := len(domainName)
 		buf = [][]byte{{AtypDomainName, uint8(length)}, []byte(domainName), port[:]}
-	} else if dstIP.To4() != nil /* IPv4 */ {
-		buf = [][]byte{{AtypIPv4}, dstIP.To4(), port[:]}
+	} else if dstIP.Is4() /* IPv4 */ {
+		buf = [][]byte{{AtypIPv4}, dstIP.AsSlice(), port[:]}
 	} else /* IPv6 */ {
-		buf = [][]byte{{AtypIPv6}, dstIP.To16(), port[:]}
+		buf = [][]byte{{AtypIPv6}, dstIP.AsSlice(), port[:]}
 	}
 	return bytes.Join(buf, nil)
 }
@@ -329,14 +339,13 @@ func SerializeAddr(domainName string, dstIP net.IP, dstPort uint16) Addr {
 // ParseAddr parses a socks addr from net.Addr.
 // This is a fast path of ParseAddrString(addr.String())
 func ParseAddr(addr net.Addr) Addr {
-	switch v := addr.(type) {
-	case *net.TCPAddr:
-		return SerializeAddr("", v.IP, uint16(v.Port))
-	case *net.UDPAddr:
-		return SerializeAddr("", v.IP, uint16(v.Port))
-	default:
-		return ParseAddrString(addr.String())
+	if v, ok := addr.(interface {
+		AddrPort() netip.AddrPort
+	}); ok {
+		ap := v.AddrPort()
+		return SerializeAddr("", ap.Addr(), ap.Port())
 	}
+	return ParseAddrString(addr.String())
 }
 
 // ParseAddrString parses the address in string s to Addr. Returns nil if failed.
@@ -351,10 +360,10 @@ func ParseAddrString(s string) Addr {
 		return nil
 	}
 
-	if ip := net.ParseIP(host); ip != nil {
+	if ip, _ := netip.ParseAddr(host); ip.IsValid() {
 		return SerializeAddr("", ip, uint16(dstPort))
 	}
-	return SerializeAddr(host, nil, uint16(dstPort))
+	return SerializeAddr(host, netip.Addr{}, uint16(dstPort))
 }
 
 // DecodeUDPPacket split `packet` to addr payload, and this function is mutable with `packet`

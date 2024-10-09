@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"net"
+	"net/netip"
 	"os/exec"
 	"sync"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/xjasonlyu/tun2socks/v2/core/device"
 	"github.com/xjasonlyu/tun2socks/v2/core/option"
 	"github.com/xjasonlyu/tun2socks/v2/dialer"
-	"github.com/xjasonlyu/tun2socks/v2/engine/mirror"
 	"github.com/xjasonlyu/tun2socks/v2/log"
 	"github.com/xjasonlyu/tun2socks/v2/proxy"
 	"github.com/xjasonlyu/tun2socks/v2/restapi"
@@ -82,14 +82,14 @@ func start() error {
 func stop() (err error) {
 	_engineMu.Lock()
 	if _defaultDevice != nil {
-		err = _defaultDevice.Close()
+		_defaultDevice.Close()
 	}
 	if _defaultStack != nil {
 		_defaultStack.Close()
 		_defaultStack.Wait()
 	}
 	_engineMu.Unlock()
-	return err
+	return nil
 }
 
 func execCommand(cmd string) error {
@@ -109,7 +109,7 @@ func general(k *Key) error {
 	if err != nil {
 		return err
 	}
-	log.SetLevel(level)
+	log.SetLogger(log.Must(log.NewLeveled(level)))
 
 	if k.Interface != "" {
 		iface, err := net.InterfaceByName(k.Interface)
@@ -130,7 +130,7 @@ func general(k *Key) error {
 		if k.UDPTimeout < time.Second {
 			return errors.New("invalid udp timeout value")
 		}
-		tunnel.SetUDPTimeout(k.UDPTimeout)
+		tunnel.T().SetUDPTimeout(k.UDPTimeout)
 	}
 	return nil
 }
@@ -156,7 +156,7 @@ func restAPI(k *Key) error {
 
 		go func() {
 			if err := restapi.Start(host, token); err != nil {
-				log.Warnf("[RESTAPI] failed to start: %v", err)
+				log.Errorf("[RESTAPI] failed to start: %v", err)
 			}
 		}()
 		log.Infof("[RESTAPI] serve at: %s", u)
@@ -175,7 +175,7 @@ func netstack(k *Key) (err error) {
 	if k.TUNPreUp != "" {
 		log.Infof("[TUN] pre-execute command: `%s`", k.TUNPreUp)
 		if preUpErr := execCommand(k.TUNPreUp); preUpErr != nil {
-			log.Warnf("[TUN] failed to pre-execute: %s: %v", k.TUNPreUp, preUpErr)
+			log.Errorf("[TUN] failed to pre-execute: %s: %v", k.TUNPreUp, preUpErr)
 		}
 	}
 
@@ -185,20 +185,20 @@ func netstack(k *Key) (err error) {
 		}
 		log.Infof("[TUN] post-execute command: `%s`", k.TUNPostUp)
 		if postUpErr := execCommand(k.TUNPostUp); postUpErr != nil {
-			log.Warnf("[TUN] failed to post-execute: %s: %v", k.TUNPostUp, postUpErr)
+			log.Errorf("[TUN] failed to post-execute: %s: %v", k.TUNPostUp, postUpErr)
 		}
 	}()
 
 	if _defaultProxy, err = parseProxy(k.Proxy); err != nil {
 		return
 	}
-	proxy.SetDialer(_defaultProxy)
+	tunnel.T().SetDialer(_defaultProxy)
 
 	if _defaultDevice, err = parseDevice(k.Device, uint32(k.MTU)); err != nil {
 		return
 	}
 
-	var multicastGroups []net.IP
+	var multicastGroups []netip.Addr
 	if multicastGroups, err = parseMulticastGroups(k.MulticastGroups); err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func netstack(k *Key) (err error) {
 
 	if _defaultStack, err = core.CreateStack(&core.Config{
 		LinkEndpoint:     _defaultDevice,
-		TransportHandler: &mirror.Tunnel{},
+		TransportHandler: tunnel.T(),
 		MulticastGroups:  multicastGroups,
 		Options:          opts,
 	}); err != nil {

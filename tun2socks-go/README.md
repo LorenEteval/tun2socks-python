@@ -16,20 +16,19 @@
 [6]: https://img.shields.io/docker/pulls/xjasonlyu/tun2socks?logo=docker
 [7]: https://img.shields.io/github/v/release/xjasonlyu/tun2socks?logo=smartthings
 
-English | [简体中文](README_ZH.md)
-
 ## Features
 
 - Proxy Everything: Handle all network traffic of any internet programs sent by the device through a proxy.
 - Proxy Protocols: HTTP/Socks4/Socks5/Shadowsocks with authentication support for remote connections.
 - Run Everywhere: Linux/macOS/Windows/FreeBSD/OpenBSD multi-platform support with specific optimization.
-- Gateway Mode: Act as a layer three gateway to handle network traffic from other devices in the same network.
+- Gateway Mode: Act as a Layer 3 gateway to handle network traffic from other devices on the same network.
 - Full IPv6 Support: All functions work in IPv6, tunnel IPv4 connections through IPv6 proxy and vice versa.
-- Network Stack: Powered by user-space TCP/IP stack from Google container application kernel **[gVisor](https://github.com/google/gvisor)**.
+- Network Stack: Powered by the user-space TCP/IP stack from Google container application kernel **[gVisor](https://github.com/google/gvisor)**.
 
 ## Benchmarks
 
-For all scenarios of usage, tun2socks performs best. See [here](https://github.com/xjasonlyu/tun2socks/wiki/Benchmarks) for more details.
+For all scenarios of usage, tun2socks performs best.
+See [benchmarks](https://github.com/xjasonlyu/tun2socks/wiki/Benchmarks) for more details.
 
 ![benchmark](docs/benchmark.png)
 
@@ -49,6 +48,7 @@ Welcome and feel free to ask any questions at [Discussions](https://github.com/x
 
 - [google/gvisor](https://github.com/google/gvisor) - Application Kernel for Containers
 - [wireguard-go](https://git.zx2c4.com/wireguard-go) - Go Implementation of WireGuard
+- [wintun](https://git.zx2c4.com/wintun/) - Layer 3 TUN Driver for Windows
 
 ## License
 

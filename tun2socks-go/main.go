@@ -34,7 +34,7 @@ func init() {
 	//flag.StringVar(&configFile, "config", "", "YAML format configuration file")
 	//flag.StringVar(&key.Device, "device", "", "Use this device [driver://]name")
 	//flag.StringVar(&key.Interface, "interface", "", "Use network INTERFACE (Linux/MacOS only)")
-	//flag.StringVar(&key.LogLevel, "loglevel", "info", "Log level [debug|info|warning|error|silent]")
+	//flag.StringVar(&key.LogLevel, "loglevel", "info", "Log level [debug|info|warn|error|silent]")
 	//flag.StringVar(&key.Proxy, "proxy", "", "Use this proxy [protocol://]host[:port]")
 	//flag.StringVar(&key.RestAPI, "restapi", "", "HTTP statistic server listen address")
 	//flag.StringVar(&key.TCPSendBufferSize, "tcp-sndbuf", "", "Set TCP send buffer size for netstack")
@@ -45,6 +45,28 @@ func init() {
 	//flag.StringVar(&key.TUNPostUp, "tun-post-up", "", "Execute a command after TUN device setup")
 	//flag.BoolVar(&versionFlag, "version", false, "Show version and then quit")
 	//flag.Parse()
+}
+
+//export startFromArgs
+func startFromArgs(device string, networkInterface string, logLevel string, proxy string, restAPI string) {
+	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
+
+	customKey := new(engine.Key)
+
+	customKey.Device = device
+	customKey.Interface = networkInterface
+	customKey.LogLevel = logLevel
+	customKey.Proxy = proxy
+	customKey.RestAPI = restAPI
+
+	engine.Insert(customKey)
+	engine.Start()
+
+	defer engine.Stop()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
 }
 
 func main() {
@@ -69,26 +91,6 @@ func main() {
 	engine.Insert(key)
 
 	engine.Start()
-	defer engine.Stop()
-
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
-}
-
-//export startFromArgs
-func startFromArgs(device string, networkInterface string, logLevel string, proxy string, restAPI string) {
-	customKey := new(engine.Key)
-
-	customKey.Device = device
-	customKey.Interface = networkInterface
-	customKey.LogLevel = logLevel
-	customKey.Proxy = proxy
-	customKey.RestAPI = restAPI
-
-	engine.Insert(customKey)
-	engine.Start()
-
 	defer engine.Stop()
 
 	sigCh := make(chan os.Signal, 1)
