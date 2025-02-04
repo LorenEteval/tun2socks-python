@@ -47,28 +47,6 @@ func init() {
 	//flag.Parse()
 }
 
-//export startFromArgs
-func startFromArgs(device string, networkInterface string, logLevel string, proxy string, restAPI string) {
-	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
-
-	customKey := new(engine.Key)
-
-	customKey.Device = device
-	customKey.Interface = networkInterface
-	customKey.LogLevel = logLevel
-	customKey.Proxy = proxy
-	customKey.RestAPI = restAPI
-
-	engine.Insert(customKey)
-	engine.Start()
-
-	defer engine.Stop()
-
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
-}
-
 func main() {
 	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
 
@@ -91,6 +69,26 @@ func main() {
 	engine.Insert(key)
 
 	engine.Start()
+	defer engine.Stop()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
+}
+
+//export startFromArgs
+func startFromArgs(device string, networkInterface string, logLevel string, proxy string, restAPI string) {
+	customKey := new(engine.Key)
+
+	customKey.Device = device
+	customKey.Interface = networkInterface
+	customKey.LogLevel = logLevel
+	customKey.Proxy = proxy
+	customKey.RestAPI = restAPI
+
+	engine.Insert(customKey)
+	engine.Start()
+
 	defer engine.Stop()
 
 	sigCh := make(chan os.Signal, 1)
