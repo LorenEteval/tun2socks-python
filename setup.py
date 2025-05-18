@@ -76,7 +76,7 @@ with open('README.md', 'r', encoding='utf-8') as file:
 
 setup(
     name=PACKAGE_NAME,
-    version='2.5.2.3',
+    version='2.5.2.4',
     license='GPL v3.0',
     description='Python bindings for go tun2socks.',
     long_description=long_description,
