@@ -76,7 +76,7 @@ with open('README.md', 'r', encoding='utf-8') as file:
 
 setup(
     name=PACKAGE_NAME,
-    version='2.5.2.4',
+    version='2.6.0',
     license='GPL v3.0',
     description='Python bindings for go tun2socks.',
     long_description=long_description,
@@ -94,12 +94,12 @@ setup(
         'Programming Language :: C++',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Operating System :: OS Independent',
         'Topic :: Internet',
         'Topic :: Internet :: Proxy Servers',
