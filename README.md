@@ -71,7 +71,7 @@ tun2socks-python works on all major platform with all Python version(Python 3).
 
 Below are tested build in [github actions](https://github.com/LorenEteval/tun2socks-python/actions).
 
-| Platform     | Python 3.8-Python 3.13 |
+| Platform     | Python 3.8-Python 3.14 |
 |--------------|:----------------------:|
 | ubuntu 22.04 |   :heavy_check_mark:   |
 | ubuntu 24.04 |   :heavy_check_mark:   |
