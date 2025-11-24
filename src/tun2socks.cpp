@@ -35,6 +35,6 @@ namespace {
             "Start tun2socks with custom arguments",
             py::arg("device"), py::arg("networkInterface"), py::arg("logLevel"), py::arg("proxy"), py::arg("restAPI"));
 
-        m.attr("__version__") = "2.6.0";
+        m.attr("__version__") = "2.6.0.1";
     }
 }
