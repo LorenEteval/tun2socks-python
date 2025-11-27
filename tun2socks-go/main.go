@@ -74,7 +74,16 @@ func main() {
 }
 
 //export startFromArgs
-func startFromArgs(device string, networkInterface string, logLevel string, proxy string, restAPI string) {
+func startFromArgs(
+	device string,
+	networkInterface string,
+	logLevel string,
+	proxy string,
+	restAPI string,
+	tcpSendBufferSize string,
+	tcpReceiveBufferSize string,
+	tcpAutoTuning bool,
+) {
 	customKey := new(engine.Key)
 
 	customKey.Device = device
@@ -82,6 +91,9 @@ func startFromArgs(device string, networkInterface string, logLevel string, prox
 	customKey.LogLevel = logLevel
 	customKey.Proxy = proxy
 	customKey.RestAPI = restAPI
+	customKey.TCPSendBufferSize = tcpSendBufferSize
+	customKey.TCPReceiveBufferSize = tcpReceiveBufferSize
+	customKey.TCPModerateReceiveBuffer = tcpAutoTuning
 
 	engine.Insert(customKey)
 	engine.Start()
