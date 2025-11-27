@@ -53,6 +53,6 @@ namespace {
               py::arg("tcpReceiveBufferSize") = "",
               py::arg("tcpAutoTuning") = false);
 
-        m.attr("__version__") = "2.6.0.1";
+        m.attr("__version__") = "2.6.0.2";
     }
 }
