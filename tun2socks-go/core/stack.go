@@ -24,6 +24,10 @@ type Config struct {
 	// stack to set transport handlers.
 	TransportHandler adapter.TransportHandler
 
+	// ICMPHandler is used to customize ICMP packet handling.
+	// If nil, the default icmpForwarder is used.
+	ICMPHandler adapter.NetworkHandler
+
 	// MulticastGroups is used by internal stack to add
 	// nic to given groups.
 	MulticastGroups []netip.Addr
@@ -61,8 +65,19 @@ func CreateStack(cfg *Config) (*stack.Stack, error) {
 		// before creating NIC, otherwise NIC would dispatch packets
 		// to stack and cause race condition.
 		// Initiate transport protocol (TCP/UDP) with given handler.
-		withTCPHandler(cfg.TransportHandler.HandleTCP),
-		withUDPHandler(cfg.TransportHandler.HandleUDP),
+		withTCPHandler(cfg.TransportHandler),
+		withUDPHandler(cfg.TransportHandler),
+
+		// gVisor added NetworkPacketInfo.LocalAddressTemporary to
+		// identify packets received with temporary addresses due
+		// to promiscuous mode, and it skips the direct ICMP reply
+		// for these. A custom ICMP handler is needed to respond to
+		// these ICMP packets instead.
+		//
+		// Ref:
+		//  - https://github.com/google/gvisor/issues/8657
+		//  - https://github.com/google/gvisor/pull/11681
+		withICMPHandler(cfg.ICMPHandler),
 
 		// Create stack NIC and then bind link endpoint to it.
 		withCreatingNIC(nicID, cfg.LinkEndpoint),
