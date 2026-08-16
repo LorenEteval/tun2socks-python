@@ -42,7 +42,7 @@ namespace {
         }
     }
 
-    PYBIND11_MODULE(tun2socks, m)
+    PYBIND11_MODULE(tun2socks, m, py::mod_gil_not_used())
     {
         m.def("startFromArgs",
               &startFromArgs,

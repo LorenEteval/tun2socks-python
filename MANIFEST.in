@@ -1,7 +1,6 @@
-recursive-include gobuild *
-recursive-include tun2socks tun2socks.*
+recursive-include tun2socks *.py
 recursive-include tun2socks-go *
-recursive-include pybind11 *
 recursive-include src *
 include CMakeLists.txt
 include README.md
+include LICENSE

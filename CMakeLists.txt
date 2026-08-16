@@ -1,12 +1,17 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.15)
 project(tun2socks C CXX)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/lib/${PROJECT_NAME})
+set(
+    TUN2SOCKS_GO_BUILD_DIR
+    "${CMAKE_SOURCE_DIR}/gobuild"
+    CACHE PATH
+    "Directory containing the Go c-archive and generated header"
+)
 
-add_subdirectory(pybind11)
+find_package(pybind11 CONFIG REQUIRED)
 
 pybind11_add_module(${PROJECT_NAME} src/tun2socks.cpp)
 
@@ -24,12 +29,12 @@ if (WIN32)
 
     target_link_libraries(
         ${PROJECT_NAME} PRIVATE
-        ${CMAKE_SOURCE_DIR}/gobuild/tun2socks.lib
+        ${TUN2SOCKS_GO_BUILD_DIR}/tun2socks.lib
     )
 else ()
     target_link_libraries(
         ${PROJECT_NAME} PRIVATE
-        ${CMAKE_SOURCE_DIR}/gobuild/tun2socks.a
+        ${TUN2SOCKS_GO_BUILD_DIR}/tun2socks.a
         "-lresolv"
     )
 
@@ -42,4 +47,4 @@ else ()
     endif ()
 endif ()
 
-target_include_directories(${PROJECT_NAME} PRIVATE gobuild)
+target_include_directories(${PROJECT_NAME} PRIVATE ${TUN2SOCKS_GO_BUILD_DIR})
