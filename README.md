@@ -4,30 +4,37 @@
 
 Python bindings for [tun2socks](https://github.com/xjasonlyu/tun2socks).
 
-## Install
+## Installation
 
-### Core Building Tools
+Install the package from PyPI:
 
-You have to install the following tools to be able to install this package successfully.
-
-* [go](https://go.dev/doc/install) in your PATH. go 1.20.0 and above is recommended. To check go is ready,
-  type `go version`. Also, if google service is blocked in your region(such as Mainland China), you have to configure
-  your GOPROXY to be able to pull go packages. For Chinese users, refer to [goproxy.cn](https://goproxy.cn/) for more
-  information.
-* [cmake](https://cmake.org/download/) in your PATH. To check cmake is ready, type `cmake --version`.
-* A working GNU C++ compiler(i.e. GNU C++ toolchains). To check GNU C++ compiler is ready, type `g++ --version`. These
-  tools should have been installed in Linux or macOS by default. If you don't have GNU C++ toolchains(especially for
-  Windows users) anyway:
-
-    * For Linux users: type `sudo apt update && sudo apt install g++` and that should work out fine.
-    * For Windows users: install [MinGW-w64](https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
-      or [Cygwin](https://www.cygwin.com/) and make sure you have add them to PATH.
-
-### Install Package
-
-```
+```console
 pip install tun2socks
 ```
+
+The published binary wheels include the compiled Go backend and native Python binding. A compatible wheel is selected
+automatically, so installing on a supported platform does not require Go, CMake, or a C/C++ compiler.
+
+### Binary Wheel Support
+
+| Platform | Architecture | CPython versions |
+|----------|--------------|------------------|
+| Linux (manylinux2014) | x86_64 | 3.8-3.14, 3.13t, 3.14t |
+| Linux (manylinux2014) | ARM64 | 3.8-3.14, 3.13t, 3.14t |
+| Windows | x86_64 | 3.8-3.14, 3.13t, 3.14t |
+| Windows | ARM64 | 3.9-3.14, 3.13t, 3.14t |
+| macOS | Intel | 3.8-3.14, 3.13t, 3.14t |
+| macOS | Apple Silicon | 3.8-3.14, 3.13t, 3.14t |
+
+Windows ARM64 starts at Python 3.9 because cibuildwheel does not provide a CPython 3.8 Windows ARM64 build.
+
+### Building from Source
+
+Building from source is only necessary for contributors or when no compatible wheel is available. It requires:
+
+- [Go](https://go.dev/doc/install)
+- [CMake](https://cmake.org/download/) 3.15 or newer
+- A C/C++ toolchain: GCC on Linux, Apple Clang on macOS, MinGW-w64 on Windows x86_64, or LLVM-MinGW on Windows ARM64
 
 ## API
 
@@ -44,12 +51,14 @@ PACKAGE CONTENTS
 
 FUNCTIONS
     startFromArgs(...) method of builtins.PyCapsule instance
-        startFromArgs(device: str, networkInterface: str, logLevel: str, proxy: str, restAPI: str) -> None
+        startFromArgs(device: str, networkInterface: str, logLevel: str,
+                      proxy: str, restAPI: str, tcpSendBufferSize: str = '',
+                      tcpReceiveBufferSize: str = '', tcpAutoTuning: bool = False) -> None
 
         Start tun2socks with custom arguments
 
 VERSION
-    2.5.1
+    2.7.0
 ```
 
 ## Source Code Modification
@@ -64,23 +73,6 @@ To make installation of this package easier, I didn't add the
 original [tun2socks](https://github.com/xjasonlyu/tun2socks)
 source code as a submodule. To track what modifications have been made to the source code, you can compare it with the
 same version under Python binding and corresponding go repository.
-
-## Tested Platform
-
-tun2socks-python works on all major platform with all Python version(Python 3).
-
-Below are tested build in [github actions](https://github.com/LorenEteval/tun2socks-python/actions).
-
-| Platform     | Python 3.8-Python 3.14 |
-|--------------|:----------------------:|
-| ubuntu 22.04 |   :heavy_check_mark:   |
-| ubuntu 24.04 |   :heavy_check_mark:   |
-| windows-2019 |   :heavy_check_mark:   |
-| windows-2022 |   :heavy_check_mark:   |
-| windows-2025 |   :heavy_check_mark:   |
-| macos-13     |   :heavy_check_mark:   |
-| macos-14     |   :heavy_check_mark:   |
-| macos-15     |   :heavy_check_mark:   |
 
 ## License
 
