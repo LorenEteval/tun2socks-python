@@ -42,7 +42,7 @@ jobs:
           check-latest: true
           cache-dependency-path: tun2socks-go/go.sum
 
-      - uses: egor-tensin/setup-mingw@v2
+      - uses: egor-tensin/setup-mingw@v3
         if: matrix.platform == 'windows' && matrix.arch == 'AMD64'
         with:
           platform: x64
