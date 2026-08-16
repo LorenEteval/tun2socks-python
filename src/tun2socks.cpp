@@ -1,9 +1,25 @@
 #include <string>
+#if defined(__MINGW32__) && defined(_M_ARM64)
+    // CPython 3.14t uses MSVC's __getReg(18) intrinsic to read the Windows
+    // ARM64 thread environment block, but LLVM-MinGW does not provide it.
+    // Windows reserves x18 for that pointer, so provide the equivalent here.
+    #include <cstdint>
+    static inline std::uintptr_t getArm64ThreadPointer()
+    {
+        std::uintptr_t value;
+        __asm__ __volatile__("mov %0, x18" : "=r"(value));
+        return value;
+    }
+    #define __getReg(registerNumber) getArm64ThreadPointer()
+#endif
 #if defined _WIN64
     #define _hypot hypot
     #include <cmath>
 #endif
 #include <pybind11/pybind11.h>
+#if defined(__MINGW32__) && defined(_M_ARM64)
+    #undef __getReg
+#endif
 
 #include "tun2socks.h"
 
@@ -42,7 +58,9 @@ namespace {
         }
     }
 
-    PYBIND11_MODULE(tun2socks, m, py::mod_gil_not_used())
+    // TODO: Use py::mod_gil_not_used() after a complete thread-safety audit
+    // of every C++ and Go entry point so free-threaded CPython stays GIL-free.
+    PYBIND11_MODULE(tun2socks, m)
     {
         m.def("startFromArgs",
               &startFromArgs,

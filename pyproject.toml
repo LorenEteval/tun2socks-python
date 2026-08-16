@@ -20,9 +20,31 @@ test-command = [
 ]
 
 [tool.cibuildwheel.linux]
-before-all = [
-    "curl --fail --location --silent --show-error https://go.dev/dl/go1.26.3.linux-amd64.tar.gz --output /tmp/tun2socks-go.tar.gz",
-    "tar -C /usr/local -xzf /tmp/tun2socks-go.tar.gz",
-    "ln -sf /usr/local/go/bin/go /usr/local/bin/go",
-]
+before-all = """
+set -eu
+case "$(uname -m)" in
+    x86_64)
+        go_arch='amd64'
+        go_sha256='2b2cfc7148493da5e73981bffbf3353af381d5f93e789c82c79aff64962eb556'
+        ;;
+    aarch64|arm64)
+        go_arch='arm64'
+        go_sha256='9d89a3ea57d141c2b22d70083f2c8459ba3890f2d9e818e7e933b75614936565'
+        ;;
+    *)
+        echo "Unsupported Linux architecture: $(uname -m)" >&2
+        exit 1
+        ;;
+esac
+go_archive="/tmp/go1.26.3.linux-${go_arch}.tar.gz"
+curl --fail --location --silent --show-error \
+    "https://go.dev/dl/go1.26.3.linux-${go_arch}.tar.gz" \
+    --output "${go_archive}"
+echo "${go_sha256}  ${go_archive}" | sha256sum -c -
+rm -rf /usr/local/go
+tar -C /usr/local -xzf "${go_archive}"
+/usr/local/go/bin/go version
+"""
+environment = { PATH = "/usr/local/go/bin:$PATH" }
 manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
