@@ -141,7 +141,7 @@ with open(ROOT_DIR / 'README.md', 'r', encoding='utf-8') as file:
 
 setup(
     name=PACKAGE_NAME,
-    version='2.7.0',
+    version='2.7.0.1',
     license='MIT',
     description='Python bindings for go tun2socks.',
     long_description=long_description,
