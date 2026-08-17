@@ -9,11 +9,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build = [
-    "cp3{8,9,10,11,12,13,14}-*",
-    "cp3{13,14}t-*",
+    "cp3{9,10,11,12,13,14}-*",
+    "cp314t-*",
 ]
 skip = "*-musllinux_*"
-enable = ["cpython-freethreading"]
 test-command = [
     "python -c \"import pathlib, tun2socks; source_package = (pathlib.Path(r'{project}') / 'tun2socks').resolve(); module = pathlib.Path(tun2socks.__file__).resolve(); assert module.parent != source_package, f'imported {module} from the source checkout'\"",
     "python {project}/sample/sample.py",

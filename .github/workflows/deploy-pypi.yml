@@ -78,15 +78,27 @@ jobs:
 
           $toolchainBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      # cibuildwheel's CPython 3.8 arm64 build uses this native interpreter
-      # instead of running an Intel interpreter under Rosetta.
+      # The legacy CPython 3.8 arm64 build uses this native interpreter instead
+      # of running an Intel interpreter under Rosetta.
       - uses: actions/setup-python@v7
         if: matrix.platform == 'macos' && matrix.arch == 'arm64'
         with:
           python-version: "3.8"
 
-      - name: Build and test wheels
+      # cibuildwheel 4 removed CPython 3.8 and the experimental 3.13t build.
+      # Keep this narrowly scoped compatibility pass until those wheels are no
+      # longer part of the supported platform matrix.
+      - name: Build and test legacy CPython wheels
         uses: pypa/cibuildwheel@v3.4.1
+        with:
+          output-dir: wheelhouse
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_BUILD: "cp38-* cp313t-*"
+          CIBW_ENABLE: cpython-freethreading
+
+      - name: Build and test current CPython wheels
+        uses: pypa/cibuildwheel@v4.2.0
         with:
           output-dir: wheelhouse
         env:
