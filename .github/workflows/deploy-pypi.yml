@@ -89,7 +89,7 @@ jobs:
       # Keep this narrowly scoped compatibility pass until those wheels are no
       # longer part of the supported platform matrix.
       - name: Build and test legacy CPython wheels
-        uses: pypa/cibuildwheel@v3.4.1
+        uses: pypa/cibuildwheel@v4.2.0
         with:
           output-dir: wheelhouse
         env:
